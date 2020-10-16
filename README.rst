@@ -247,6 +247,7 @@ Copy and modify the different commands below as needed:
         --threads 0                                     \
         --printElapsedTime                              \
         --verbosity 5                                   \
+        /incoming /outgoing
 
 The above command uses the argument ``--filterExpression`` to filter the ``.nii`` (NIfTI) files from the ${DEVEL} directory.
 It replicates the structure of the ``inputdir`` into the ``outputdir`` (in this case: ``results`` directory) then converts all those NIfTI files (in this case SAG-anon.nii) to png files within  
@@ -266,3 +267,4 @@ The following is a similar example that converts all the ``DICOM`` files to png/
         --threads 0                                     \
         --printElapsedTime                              \
         --verbosity 5                                   \
+        /incoming /outgoing

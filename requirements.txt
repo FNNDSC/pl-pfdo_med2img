@@ -1,1 +1,6 @@
 chrisapp~=1.1.6
+pfdo_med2image
+pfdo
+pftree
+pfmisc
+med2image

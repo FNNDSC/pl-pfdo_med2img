@@ -26,8 +26,13 @@
 FROM fnndsc/ubuntu-python3:latest
 MAINTAINER fnndsc "dev@babymri.org"
 
-WORKDIR /usr/local/src/
-COPY . /usr/local/src/
-RUN ["pip", "install", "/usr/local/src"]
+ENV APPROOT="/usr/src/pfdo_med2img"
+COPY ["pfdo_med2img", "${APPROOT}"]
+COPY ["requirements.txt", "${APPROOT}"]
 
-CMD ["/usr/local/bin/pfdo_med2img", "--help"]
+WORKDIR $APPROOT
+
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+
+CMD ["pfdo_med2img.py", "--help"]

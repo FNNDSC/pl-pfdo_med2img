@@ -53,7 +53,7 @@ Arguments
 
 .. code::
 
-            [-i|--inputFile <inputFile>]
+        [-i|--inputFile <inputFile>]
         An optional <inputFile> specified relative to the <inputDir>. If
         specified, then do not perform a directory walk, but convert only
         this file.
@@ -213,7 +213,7 @@ We provide a sample directory of .dcm images here. (https://github.com/FNNDSC/SA
 
 
 Run using ``docker run``
-~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 To run using ``docker``, be sure to assign an "input" directory to ``/incoming`` and an output directory to ``/outgoing``. *Make sure that the* ``$(pwd)/out`` *directory is world writable!*
 

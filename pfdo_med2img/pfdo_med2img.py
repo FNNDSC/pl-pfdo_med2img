@@ -251,12 +251,6 @@ class Pfdo_med2img(ChrisApp):
                             type    = str,
                             optional= True,
                             default = '')
-        self.add_argument("-O", "--outputDir",
-                            help    = "output image directory",
-                            dest    = 'outputDir',
-                            type    = str,
-                            optional= False,
-                            default = '')
         self.add_argument("--printElapsedTime",
                             help    = "print program run time",
                             dest    = 'printElapsedTime',

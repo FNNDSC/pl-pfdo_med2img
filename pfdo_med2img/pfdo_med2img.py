@@ -298,6 +298,12 @@ class Pfdo_med2img(ChrisApp):
                             type    = bool,
                             optional= True,
                             default = False)
+        self.add_argument("--verbosity",
+                            help    = "verbosity level for app",
+                            dest    = 'verbosity',
+                            type    = str,
+                            optional= True,
+                            default = "1")
                             
         # med2image additional CLI flags
         self.add_argument("-o", "--outputFileStem",

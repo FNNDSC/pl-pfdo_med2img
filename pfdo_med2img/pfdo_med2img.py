@@ -298,9 +298,9 @@ class Pfdo_med2img(ChrisApp):
                             type    = bool,
                             optional= True,
                             default = False)
-        self.add_argument("--verbosity",
+        self.add_argument("--verbose",
                             help    = "verbosity level for app",
-                            dest    = 'verbosity',
+                            dest    = 'verbose',
                             type    = str,
                             optional= True,
                             default = "1")
@@ -364,6 +364,7 @@ class Pfdo_med2img(ChrisApp):
 
         options.inputDir = options.inputdir
         options.outputDir = options.outputdir
+        options.verbose = options.verbosity
 
         pfdo_shell = pfdo_med2image(vars(options))
 

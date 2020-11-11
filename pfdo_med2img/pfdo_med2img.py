@@ -251,6 +251,12 @@ class Pfdo_med2img(ChrisApp):
                             type    = str,
                             optional= True,
                             default = '')
+        self.add_argument("--analyzeFileIndex", 
+                            help="file index per directory to analyze", 
+                            type=str,
+                            dest='analyzeFileIndex', 
+                            optional=True, 
+                            default="-1")
         self.add_argument("--printElapsedTime",
                             help    = "print program run time",
                             dest    = 'printElapsedTime',

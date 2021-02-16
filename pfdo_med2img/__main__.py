@@ -1,4 +1,4 @@
-from .pfdo_med2img import Pfdo_med2img
+from pfdo_med2img.pfdo_med2img import Pfdo_med2img
 
 
 def main():

@@ -1,14 +1,12 @@
-#!/usr/bin/env python                                            
 #
 # pfdo_med2img ds ChRIS plugin app
 #
-# (c) 2016-2020 Fetal-Neonatal Neuroimaging & Developmental Science Center
+# (c) 2021 Fetal-Neonatal Neuroimaging & Developmental Science Center
 #                   Boston Children's Hospital
 #
 #              http://childrenshospital.org/FNNDSC/
 #                        dev@babyMRI.org
 #
-
 
 import os
 import sys
@@ -23,7 +21,6 @@ from pfdo_med2image import pfdo_med2image
 
 
 Gstr_title = """
-
         __    _                           _  _____ _                 
        / _|  | |                         | |/ __  (_)                
  _ __ | |_ __| | ___   _ __ ___   ___  __| |`' / /'_ _ __ ___   __ _ 
@@ -32,16 +29,10 @@ Gstr_title = """
 | .__/|_| \__,_|\___/ |_| |_| |_|\___|\__,_|\_____/_|_| |_| |_|\__, |
 | |               ______                                        __/ |
 |_|              |______|                                      |___/ 
-
 """
 
 Gstr_synopsis = """
 
-(Edit this in-line help for app specifics. At a minimum, the 
-flags below are supported -- in the case of DS apps, both
-positional arguments <inputDir> and <outputDir>; for FS apps
-only <outputDir> -- and similarly for <in> <out> directories
-where necessary.)
 
     NAME
 
@@ -49,32 +40,26 @@ where necessary.)
 
     SYNOPSIS
 
-        python pfdo_med2img.py                \\
-            [-i|--inputFile <inputFile>]            \\
-            [--filterExpression <someFilter>]       \\
-            [--outputLeafDir <outputLeafDirFormat>] \\
-            [-t|--outputFileType <outputFileType>]  \\
-            [-s|--sliceToConvert <sliceToConvert>]  \\
-            [-f|--frameToConvert <frameToConvert>]  \\
-            [--showSlices]                          \\
-            [--func <functionName>]                 \\
-            [--reslice]                             \\
-            [--threads <numThreads>]                \\
-            [--test]                                \\
-            [-x|--man]                              \\
-            [-y|--synopsis]                         \\
-            [--followLinks]                         \\
-            [--json]                                \\
-            <inputDir>                              \\
+        python pfdo_med2img.py                          \\
+            [-i|--inputFile <inputFile>]                    \\
+            [--inputFileSubStr <substr>]                    \\
+            [--fileFilter <someFilter1,someFilter2,...>]    \\
+            [--dirFilter <someFilter1,someFilter2,...>]     \\
+            [--outputLeafDir <outputLeafDirFormat>]         \\
+            [-t|--outputFileType <outputFileType>]          \\
+            [-s|--sliceToConvert <sliceToConvert>]          \\
+            [-f|--frameToConvert <frameToConvert>]          \\
+            [--showSlices]                                  \\
+            [--func <functionName>]                         \\
+            [--reslice]                                     \\
+            [--threads <numThreads>]                        \\
+            [--test]                                        \\
+            [-x|--man]                                      \\
+            [-y|--synopsis]                                 \\
+            [--followLinks]                                 \\
+            [--json]                                        \\
+            <inputDir>                                      \\
             <outputDir> 
-
-    BRIEF EXAMPLE
-
-        * Bare bones execution
-
-            mkdir in out && chmod 777 out
-            python pfdo_med2img.py   \\
-                                in    out
 
     DESCRIPTION
 
@@ -91,9 +76,44 @@ where necessary.)
         specified, then do not perform a directory walk, but convert only
         this file.
 
-        [-f|--filterExpression <someFilter>]
-        An optional string to filter the files of interest from the
-        <inputDir> tree.
+        [--inputFileSubStr <substr>]
+        As a convenience, the input file can be determined via a substring
+        search of all the files in the <inputDir> using this flag. The first
+        filename hit that contains the <substr> will be assigned the
+        <inputFile>.
+
+        This flag is useful is input names are long and cumbersome, but
+        a short substring search would identify the file. For example, an
+        input file of
+
+           0043-1.3.12.2.1107.5.2.19.45152.2013030808110149471485951.dcm
+
+        can be specified using ``--inputFileSubStr 0043-``
+
+        [--fileFilter <someFilter1,someFilter2,...>]
+        An optional comma-delimated string to filter out files of interest
+        from the <inputDir> tree. Each token in the expression is applied in
+        turn over the space of files in a directory location, and only files
+        that contain this token string in their filename are preserved.
+
+        [--dirFilter <someFilter1,someFilter2,...>]
+        Similar to the `fileFilter` but applied over the space of leaf node
+        in directory paths. A directory must contain at least one file
+        to be considered.
+
+        If a directory leaf node contains a string that corresponds to any of
+        the filter tokens, a special "hit" is recorded in the file hit list,
+        "%d-<leafnode>". For example, a directory of
+
+                            /some/dir/in/the/inputspace/here1234
+
+        with a `dirFilter` of `1234` will create a "special" hit entry of
+        "%d-here1234" to tag this directory for processing.
+
+        In addition, if a directory is filtered through, all the files in
+        that directory will be added to the filtered file list. If no files
+        are to be added, passing an explicit file filter with an "empty"
+        single string argument, i.e. `--fileFilter " "`, is advised.
 
         [--outputLeafDir <outputLeafDirFormat>]
         If specified, will apply the <outputLeafDirFormat> to the output
@@ -197,20 +217,13 @@ where necessary.)
 
 class Pfdo_med2img(ChrisApp):
     """
-    An app to ....
+    An app to ...
     """
-    AUTHORS                 = 'FNNDSC <dev@babyMRI.org>'
-    SELFPATH                = '/usr/local/bin'
-    SELFEXEC                = 'pfdo_med2img'
-    EXECSHELL               = 'python'
-    TITLE                   = 'A ChRIS plugin app to run the Python utility: pfdo_med2image'
+    PACKAGE                 = __package__
+    TITLE                   = 'A ChRIS plugin app'
     CATEGORY                = ''
     TYPE                    = 'ds'
-    DESCRIPTION             = 'An app to run the Python utility: pfdo_med2image'
-    DOCUMENTATION           = 'http://wiki'
-    VERSION                 = importlib.metadata.version(__package__)
     ICON                    = '' # url of an icon image
-    LICENSE                 = 'Opensource (MIT)'
     MAX_NUMBER_OF_WORKERS   = 1  # Override with integer value
     MIN_NUMBER_OF_WORKERS   = 1  # Override with integer value
     MAX_CPU_LIMIT           = '' # Override with millicore value as string, e.g. '2000m'
@@ -245,9 +258,15 @@ class Pfdo_med2img(ChrisApp):
                             type    = str,
                             optional= True,
                             default = '')
-        self.add_argument("--filterExpression",
-                            help    = "string file filter",
-                            dest    = 'filter',
+        self.add_argument("--fileFilter",
+                            help    = "a list of comma separated string filters to apply across the input file space",
+                            dest    = 'fileFilter',
+                            type    = str,
+                            optional= True,
+                            default = '')
+        self.add_argument("--dirFilter",
+                            help    = "a list of comma separated string filters to apply across the input dir space",
+                            dest    = 'dirFilter',
                             type    = str,
                             optional= True,
                             default = '')
@@ -312,6 +331,12 @@ class Pfdo_med2img(ChrisApp):
                             default = "1")
                             
         # med2image additional CLI flags
+        self.add_argument("--inputFileSubStr",
+                            help    = "input file substring",
+                            default = '',
+                            dest    = 'inputFileSubStr',
+                            type    = str,
+                            optional= True)
         self.add_argument("-o", "--outputFileStem",
                             help    = "output file",
                             default = "output.jpg",
@@ -357,7 +382,6 @@ class Pfdo_med2img(ChrisApp):
                             optional= True,
                             default = "")
 
-
     def run(self, options):
         """
         Define the code to be run by this plugin app.
@@ -390,8 +414,3 @@ class Pfdo_med2img(ChrisApp):
         Print the app's man page.
         """
         print(Gstr_synopsis)
-
-# ENTRYPOINT
-if __name__ == "__main__":
-    app = Pfdo_med2img()
-    app.launch()

@@ -29,22 +29,24 @@ Synopsis
 .. code::
 
     python pfdo_med2img.py                  \
-            [-i|--inputFile <inputFile>]            \
-            [--filterExpression <someFilter>]       \
-            [--outputLeafDir <outputLeafDirFormat>] \
-            [-t|--outputFileType <outputFileType>]  \
-            [-s|--sliceToConvert <sliceToConvert>]  \
-            [-f|--frameToConvert <frameToConvert>]  \
-            [--showSlices]                          \
-            [--func <functionName>]                 \
-            [--reslice]                             \
-            [--threads <numThreads>]                \
-            [--test]                                \
-            [-x|--man]                              \
-            [-y|--synopsis]                         \
-            [--followLinks]                         \
-            [--json]                                \
-            <inputDir>                              \
+            [-i|--inputFile <inputFile>]                    \
+            [--inputFileSubStr <substr>]                    \
+            [--fileFilter <someFilter1,someFilter2,...>]    \
+            [--dirFilter <someFilter1,someFilter2,...>]     \
+            [--outputLeafDir <outputLeafDirFormat>]         \
+            [-t|--outputFileType <outputFileType>]          \
+            [-s|--sliceToConvert <sliceToConvert>]          \
+            [-f|--frameToConvert <frameToConvert>]          \
+            [--showSlices]                                  \
+            [--func <functionName>]                         \   
+            [--reslice]                                     \
+            [--threads <numThreads>]                        \
+            [--test]                                        \
+            [-x|--man]                                      \
+            [-y|--synopsis]                                 \
+            [--followLinks]                                 \
+            [--json]                                        \
+            <inputDir>                                      \
             <outputDir> 
 
 
@@ -58,9 +60,44 @@ Arguments
         specified, then do not perform a directory walk, but convert only
         this file.
 
-        [-f|--filterExpression <someFilter>]
-        An optional string to filter the files of interest from the
-        <inputDir> tree.
+        [--inputFileSubStr <substr>]
+        As a convenience, the input file can be determined via a substring
+        search of all the files in the <inputDir> using this flag. The first
+        filename hit that contains the <substr> will be assigned the
+        <inputFile>.
+
+        This flag is useful is input names are long and cumbersome, but
+        a short substring search would identify the file. For example, an
+        input file of
+
+           0043-1.3.12.2.1107.5.2.19.45152.2013030808110149471485951.dcm
+
+        can be specified using ``--inputFileSubStr 0043-``
+
+        [--fileFilter <someFilter1,someFilter2,...>]
+        An optional comma-delimated string to filter out files of interest
+        from the <inputDir> tree. Each token in the expression is applied in
+        turn over the space of files in a directory location, and only files
+        that contain this token string in their filename are preserved.
+
+        [--dirFilter <someFilter1,someFilter2,...>]
+        Similar to the `fileFilter` but applied over the space of leaf node
+        in directory paths. A directory must contain at least one file
+        to be considered.
+
+        If a directory leaf node contains a string that corresponds to any of
+        the filter tokens, a special "hit" is recorded in the file hit list,
+        "%d-<leafnode>". For example, a directory of
+
+                            /some/dir/in/the/inputspace/here1234
+
+        with a `dirFilter` of `1234` will create a "special" hit entry of
+        "%d-here1234" to tag this directory for processing.
+
+        In addition, if a directory is filtered through, all the files in
+        that directory will be added to the filtered file list. If no files
+        are to be added, passing an explicit file filter with an "empty"
+        single string argument, i.e. `--fileFilter " "`, is advised.
 
         [--outputLeafDir <outputLeafDirFormat>]
         If specified, will apply the <outputLeafDirFormat> to the output
@@ -194,7 +231,7 @@ We provide a sample volume here https://github.com/FNNDSC/SAG-anon-nii.git
 
 - Clone this repository (SAG-anon-nii) to your local computer.
 
-::
+.. code:: bash
 
     git clone https://github.com/FNNDSC/SAG-anon-nii.git
 
@@ -207,7 +244,7 @@ We provide a sample directory of .dcm images here. (https://github.com/FNNDSC/SA
 
 -   Clone this repository (SAG-anon) to your local computer.
 
-::
+.. code:: bash
 
     git clone https://github.com/FNNDSC/SAG-anon.git
 
@@ -243,7 +280,7 @@ Copy and modify the different commands below as needed:
         -v ${DEVEL}/:/incoming                          \
         -v ${DEVEL}/results/:/outgoing                  \
         fnndsc/pl-pfdo_med2img pfdo_med2img.py          \
-        --filterExpression nii                          \
+        --fileFilter nii                                \
         --threads 0                                     \
         --printElapsedTime                              \
         --verbosity 5                                   \
@@ -263,7 +300,7 @@ The following is a similar example that converts all the ``DICOM`` files to png/
         -v ${DEVEL}/:/incoming                          \
         -v ${DEVEL}/results/:/outgoing                  \
         fnndsc/pl-pfdo_med2img pfdo_med2img.py          \
-        --filterExpression dcm                          \
+        --fileFilter dcm                                \
         --threads 0                                     \
         --printElapsedTime                              \
         --verbosity 5                                   \

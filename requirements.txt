@@ -8,7 +8,7 @@ nose==1.3.7
 numpy==1.20.1
 packaging==20.9
 pfdo==2.2.2
-pfdo-med2image==1.1.4
+pfdo-med2image==1.1.6
 pfmisc==2.2.2
 pftree==2.2.0
 Pillow==8.1.0

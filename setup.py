@@ -6,8 +6,8 @@ with open(path.join(path.dirname(path.abspath(__file__)), 'README.rst')) as f:
 
 setup(
     name             = 'pfdo_med2img',
-    version          = '1.0.3',
-    description      = 'An app to recursively walk down a directory tree and perform a med2image on files in each directory.',
+    version          = '1.1.0',
+    description      = 'An app to recursively walk down a directory tree and perform bulk med2image on files/dirs.',
     long_description = readme,
     author           = 'Arushi Vyas',
     author_email     = 'dev@babyMRI.org',

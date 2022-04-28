@@ -16,11 +16,7 @@ pl-pfdo_med2img
 Abstract
 --------
 
-`pl-pfdo_med2img` is a ChRIS plugin that can recursively 
-walk down a directory tree and perform a 'med2image'
-on files in each directory. (optionally filtered by some simple
-expression). Results of each operation are saved in output tree
-that  preserves the input directory structure.
+``pl-pfdo_med2img`` is a ChRIS plugin about a ``pfdo_med2image`` module. Consult the ``pfdo_med2image`` (repo)[https://github.com/FNNDSC/pfdo_med2image] for additional information -- this plugin wrapper exposes the same CLI contract with the exceptio that the input and output directories are positional mandatory arguments in the plugin, but named and optional in the module.
 
 
 Synopsis
@@ -28,7 +24,7 @@ Synopsis
 
 .. code::
 
-    python pfdo_med2img.py                  \
+    pfdo_med2img                                         \
             [-i|--inputFile <inputFile>]                    \
             [--inputFileSubStr <substr>]                    \
             [--fileFilter <someFilter1,someFilter2,...>]    \
@@ -36,10 +32,14 @@ Synopsis
             [--outputLeafDir <outputLeafDirFormat>]         \
             [-t|--outputFileType <outputFileType>]          \
             [-s|--sliceToConvert <sliceToConvert>]          \
+            [--convertOnlySingleDICOM]                      \
+            [--preserveDICOMinputName]                      \
             [-f|--frameToConvert <frameToConvert>]          \
             [--showSlices]                                  \
-            [--func <functionName>]                         \   
+            [--func <functionName>]                         \
             [--reslice]                                     \
+            [--rotAngle <angle>]                            \
+            [--rot <3vec>]                                  \
             [--threads <numThreads>]                        \
             [--test]                                        \
             [-x|--man]                                      \
@@ -47,7 +47,7 @@ Synopsis
             [--followLinks]                                 \
             [--json]                                        \
             <inputDir>                                      \
-            <outputDir> 
+            <outputDir>
 
 
 Arguments
@@ -80,24 +80,22 @@ Arguments
         turn over the space of files in a directory location, and only files
         that contain this token string in their filename are preserved.
 
-        [--dirFilter <someFilter1,someFilter2,...>]
-        Similar to the `fileFilter` but applied over the space of leaf node
-        in directory paths. A directory must contain at least one file
-        to be considered.
+        [-d|--dirFilter <someFilter1,someFilter2,...>]
+        An additional filter that will further limit any files to process to
+        only those files that exist in leaf directory nodes that have some
+        substring of each of the comma separated <someFilter> in their
+        directory name.
 
-        If a directory leaf node contains a string that corresponds to any of
-        the filter tokens, a special "hit" is recorded in the file hit list,
-        "%d-<leafnode>". For example, a directory of
-
-                            /some/dir/in/the/inputspace/here1234
-
-        with a `dirFilter` of `1234` will create a "special" hit entry of
-        "%d-here1234" to tag this directory for processing.
-
-        In addition, if a directory is filtered through, all the files in
-        that directory will be added to the filtered file list. If no files
-        are to be added, passing an explicit file filter with an "empty"
-        single string argument, i.e. `--fileFilter " "`, is advised.
+        [--analyzeFileIndex <someIndex>]
+        An optional string to control which file(s) in a specific directory
+        to which the analysis is applied. The default is "-1" which implies
+        *ALL* files in a given directory. Other valid <someIndex> are:
+            'm':   only the "middle" file in the returned file list
+            "f":   only the first file in the returned file list
+            "l":   only the last file in the returned file list
+            "<N>": the file at index N in the file list. If this index
+                   is out of bounds, no analysis is performed.
+            "-1" means all files.
 
         [--outputLeafDir <outputLeafDirFormat>]
         If specified, will apply the <outputLeafDirFormat> to the output
@@ -107,9 +105,9 @@ Arguments
 
         This is a formatting spec, so
 
-            --outputLeafDir 'preview-%%s'
+            --outputLeafDir 'preview-%s'
 
-        where %%s is the original leaf directory node, will prefix each
+        where %s is the original leaf directory node, will prefix each
         final directory containing output with the text 'preview-' which
         can be useful in describing some features of the output set.
 
@@ -121,9 +119,9 @@ Arguments
         SPECIAL CASES:
         For DICOM data, the <outputFileStem> can be set to the value of
         an internal DICOM tag. The tag is specified by preceding the tag
-        name with a percent character '%%', so
+        name with a percent character '%', so
 
-            -o %%ProtocolName
+            -o %ProtocolName
 
         will use the DICOM 'ProtocolName' to name the output file. Note
         that special characters (like spaces) in the DICOM value are
@@ -131,10 +129,21 @@ Arguments
 
         Multiple tags can be specified, for example
 
-            -o %%PatientName%%PatientID%%ProtocolName
+            -o %PatientName%PatientID%ProtocolName
 
         and the output filename will have each DICOM tag string as
         specified in order, connected with dashes.
+
+        [--convertOnlySingleDICOM]
+        If specified, will only convert the single DICOM specified by the
+        '--inputFile' flag. This is useful for the case when an input
+        directory has many DICOMS but you specifially only want to convert
+        the named file. By default the script assumes that multiple DICOMS
+        should be converted en mass otherwise.
+
+        [--preserveDICOMinputName]
+        If specified, use the input DICOM name as the base of the output
+        filename.
 
         [-t|--outputFileType <outputFileType>]
         The output file type. If different to <outputFileStem> extension,
@@ -155,6 +164,17 @@ Arguments
         [--showSlices]
         If specified, render/show image slices as they are created.
 
+        [--rot <3DbinVector>]
+        A per dimension binary rotation vector. Useful to rotate individual
+        dimensions by an angle specified with [--rotAngle <angle>]. Default
+        is '110', i.e. rotate 'x' and 'y' but not 'z'. Note that for a
+        non-reslice selection, only the 'z' (or third) element of the vector
+        is used.
+
+        [--rotAngle <angle>]
+        Default 90 -- the rotation angle to apply to a given dimension of the
+        <3DbinVector>.
+
         [--func <functionName>]
         Apply the specified transformation function before saving. Currently
         support functions:
@@ -163,10 +183,10 @@ Arguments
               Inverts the contrast intensity of the source image.
 
         [--reslice]
-        For 3D data only. Assuming [i,j,k] coordinates, the default is to save
-        along the 'k' direction. By passing a --reslice image data in the 'i' and
-        'j' directions are also saved. Furthermore, the <outputDir> is subdivided into
-        'slice' (k), 'row' (i), and 'col' (j) subdirectories.
+        For 3D data only. Assuming [x,y,z] coordinates, the default is to save
+        along the 'z' direction. By passing a --reslice image data in the 'x'
+        and 'y' directions are also saved. Furthermore, the <outputDir> is
+        subdivided into 'slice' (z), 'row' (x), and 'col' (y) subdirectories.
 
         [--threads <numThreads>]
         If specified, break the innermost analysis loop into <numThreads>
@@ -201,6 +221,8 @@ Run
 ===
 
 While ``pl-pfdo_med2img`` is meant to be run as a containerized docker image, typically within ChRIS, it is quite possible to run the dockerized plugin directly from the command line as well. The following instructions are meant to be a psuedo- ``jupyter-notebook`` inspired style where if you follow along and copy/paste into a terminal you should be able to run all the examples.
+
+(For advanced, interested users, it is also possible to run the python program directory without containerization using a ``pip install .`` in the repo source directory. In such a case, adapt the follow-along instructions accordingly.)
 
 First, let's create a directory, say ``devel`` wherever you feel like it. We will place some test data in this directory to process with this plugin.
 
@@ -276,10 +298,10 @@ Copy and modify the different commands below as needed:
 
 .. code:: bash
 
-    docker run --rm             \
+    docker run --rm                                     \
         -v ${DEVEL}/:/incoming                          \
         -v ${DEVEL}/results/:/outgoing                  \
-        fnndsc/pl-pfdo_med2img pfdo_med2img.py          \
+        fnndsc/pl-pfdo_med2img pfdo_med2img             \
         --fileFilter nii                                \
         --threads 0                                     \
         --printElapsedTime                              \
@@ -287,7 +309,7 @@ Copy and modify the different commands below as needed:
         /incoming /outgoing
 
 The above command uses the argument ``--filterExpression`` to filter the ``.nii`` (NIfTI) files from the ${DEVEL} directory.
-It replicates the structure of the ``inputdir`` into the ``outputdir`` (in this case: ``results`` directory) then converts all those NIfTI files (in this case SAG-anon.nii) to png files within  
+It replicates the structure of the ``inputdir`` into the ``outputdir`` (in this case: ``results`` directory) then converts all those NIfTI files (in this case SAG-anon.nii) to png files within
 the outputdir.
 
 The following is a similar example that converts all the ``DICOM`` files to png/jpg images in the desired outputdir.
@@ -299,7 +321,7 @@ The following is a similar example that converts all the ``DICOM`` files to png/
     docker run --rm             \
         -v ${DEVEL}/:/incoming                          \
         -v ${DEVEL}/results/:/outgoing                  \
-        fnndsc/pl-pfdo_med2img pfdo_med2img.py          \
+        fnndsc/pl-pfdo_med2img pfdo_med2img             \
         --fileFilter dcm                                \
         --threads 0                                     \
         --printElapsedTime                              \

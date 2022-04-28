@@ -21,14 +21,14 @@ from pfdo_med2image import pfdo_med2image
 
 
 Gstr_title = """
-        __    _                           _  _____ _                 
-       / _|  | |                         | |/ __  (_)                
- _ __ | |_ __| | ___   _ __ ___   ___  __| |`' / /'_ _ __ ___   __ _ 
+        __    _                           _  _____ _
+       / _|  | |                         | |/ __  (_)
+ _ __ | |_ __| | ___   _ __ ___   ___  __| |`' / /'_ _ __ ___   __ _
 | '_ \|  _/ _` |/ _ \ | '_ ` _ \ / _ \/ _` |  / / | | '_ ` _ \ / _` |
 | |_) | || (_| | (_) || | | | | |  __/ (_| |./ /__| | | | | | | (_| |
 | .__/|_| \__,_|\___/ |_| |_| |_|\___|\__,_|\_____/_|_| |_| |_|\__, |
 | |               ______                                        __/ |
-|_|              |______|                                      |___/ 
+|_|              |______|                                      |___/
 """
 
 Gstr_synopsis = """
@@ -36,11 +36,11 @@ Gstr_synopsis = """
 
     NAME
 
-       pfdo_med2img.py 
+       pfdo_med2img
 
     SYNOPSIS
 
-        python pfdo_med2img.py                          \\
+        pfdo_med2img                                        \\
             [-i|--inputFile <inputFile>]                    \\
             [--inputFileSubStr <substr>]                    \\
             [--fileFilter <someFilter1,someFilter2,...>]    \\
@@ -48,10 +48,14 @@ Gstr_synopsis = """
             [--outputLeafDir <outputLeafDirFormat>]         \\
             [-t|--outputFileType <outputFileType>]          \\
             [-s|--sliceToConvert <sliceToConvert>]          \\
+            [--convertOnlySingleDICOM]                      \\
+            [--preserveDICOMinputName]                      \\
             [-f|--frameToConvert <frameToConvert>]          \\
             [--showSlices]                                  \\
             [--func <functionName>]                         \\
             [--reslice]                                     \\
+            [--rotAngle <angle>]                            \\
+            [--rot <3vec>]                                  \\
             [--threads <numThreads>]                        \\
             [--test]                                        \\
             [-x|--man]                                      \\
@@ -59,15 +63,16 @@ Gstr_synopsis = """
             [--followLinks]                                 \\
             [--json]                                        \\
             <inputDir>                                      \\
-            <outputDir> 
+            <outputDir>
 
     DESCRIPTION
 
-        `pl-pfdo_med2img` is a ChRIS plugin that can recursively 
-        walk down a directory tree and perform a 'med2image'
-        on files in each directory (optionally filtered by some simple
-        expression). Results of each operation are saved in output tree
-        that  preserves the input directory structure.
+        `pl-pfdo_med2img` is a ChRIS plugin about a `pfdo_med2image`
+        module. Consult the `pfdo_med2image` repo for additional
+        information -- this plugin wrapper exposes the same CLI contract
+        with the exceptio that the input and output directories are
+        positional mandatory arguments in the plugin, but named and
+        optional in the module.
 
     ARGS
 
@@ -96,24 +101,22 @@ Gstr_synopsis = """
         turn over the space of files in a directory location, and only files
         that contain this token string in their filename are preserved.
 
-        [--dirFilter <someFilter1,someFilter2,...>]
-        Similar to the `fileFilter` but applied over the space of leaf node
-        in directory paths. A directory must contain at least one file
-        to be considered.
+        [-d|--dirFilter <someFilter1,someFilter2,...>]
+        An additional filter that will further limit any files to process to
+        only those files that exist in leaf directory nodes that have some
+        substring of each of the comma separated <someFilter> in their
+        directory name.
 
-        If a directory leaf node contains a string that corresponds to any of
-        the filter tokens, a special "hit" is recorded in the file hit list,
-        "%d-<leafnode>". For example, a directory of
-
-                            /some/dir/in/the/inputspace/here1234
-
-        with a `dirFilter` of `1234` will create a "special" hit entry of
-        "%d-here1234" to tag this directory for processing.
-
-        In addition, if a directory is filtered through, all the files in
-        that directory will be added to the filtered file list. If no files
-        are to be added, passing an explicit file filter with an "empty"
-        single string argument, i.e. `--fileFilter " "`, is advised.
+        [--analyzeFileIndex <someIndex>]
+        An optional string to control which file(s) in a specific directory
+        to which the analysis is applied. The default is "-1" which implies
+        *ALL* files in a given directory. Other valid <someIndex> are:
+            'm':   only the "middle" file in the returned file list
+            "f":   only the first file in the returned file list
+            "l":   only the last file in the returned file list
+            "<N>": the file at index N in the file list. If this index
+                   is out of bounds, no analysis is performed.
+            "-1" means all files.
 
         [--outputLeafDir <outputLeafDirFormat>]
         If specified, will apply the <outputLeafDirFormat> to the output
@@ -152,6 +155,17 @@ Gstr_synopsis = """
         and the output filename will have each DICOM tag string as
         specified in order, connected with dashes.
 
+        [--convertOnlySingleDICOM]
+        If specified, will only convert the single DICOM specified by the
+        '--inputFile' flag. This is useful for the case when an input
+        directory has many DICOMS but you specifially only want to convert
+        the named file. By default the script assumes that multiple DICOMS
+        should be converted en mass otherwise.
+
+        [--preserveDICOMinputName]
+        If specified, use the input DICOM name as the base of the output
+        filename.
+
         [-t|--outputFileType <outputFileType>]
         The output file type. If different to <outputFileStem> extension,
         will override extension in favour of <outputFileType>.
@@ -171,6 +185,17 @@ Gstr_synopsis = """
         [--showSlices]
         If specified, render/show image slices as they are created.
 
+        [--rot <3DbinVector>]
+        A per dimension binary rotation vector. Useful to rotate individual
+        dimensions by an angle specified with [--rotAngle <angle>]. Default
+        is '110', i.e. rotate 'x' and 'y' but not 'z'. Note that for a
+        non-reslice selection, only the 'z' (or third) element of the vector
+        is used.
+
+        [--rotAngle <angle>]
+        Default 90 -- the rotation angle to apply to a given dimension of the
+        <3DbinVector>.
+
         [--func <functionName>]
         Apply the specified transformation function before saving. Currently
         support functions:
@@ -179,10 +204,10 @@ Gstr_synopsis = """
               Inverts the contrast intensity of the source image.
 
         [--reslice]
-        For 3D data only. Assuming [i,j,k] coordinates, the default is to save
-        along the 'k' direction. By passing a --reslice image data in the 'i' and
-        'j' directions are also saved. Furthermore, the <outputDir> is subdivided into
-        'slice' (k), 'row' (i), and 'col' (j) subdirectories.
+        For 3D data only. Assuming [x,y,z] coordinates, the default is to save
+        along the 'z' direction. By passing a --reslice image data in the 'x'
+        and 'y' directions are also saved. Furthermore, the <outputDir> is
+        subdivided into 'slice' (z), 'row' (x), and 'col' (y) subdirectories.
 
         [--threads <numThreads>]
         If specified, break the innermost analysis loop into <numThreads>
@@ -270,18 +295,18 @@ class Pfdo_med2img(ChrisApp):
                             type    = str,
                             optional= True,
                             default = '')
-        self.add_argument("--analyzeFileIndex", 
-                            help="file index per directory to analyze", 
-                            type=str,
-                            dest='analyzeFileIndex', 
-                            optional=True, 
-                            default="-1")
+        self.add_argument("--analyzeFileIndex",
+                            help    = "file index per directory to analyze",
+                            type    = str,
+                            dest    = 'analyzeFileIndex',
+                            optional= True,
+                            default = "-1")
         self.add_argument("--printElapsedTime",
                             help    = "print program run time",
                             dest    = 'printElapsedTime',
                             action  = 'store_true',
-                            type    = bool,  
-                            optional= True,   
+                            type    = bool,
+                            optional= True,
                             default = False)
         self.add_argument("--threads",
                             help    = "number of threads for innermost loop processing",
@@ -329,7 +354,7 @@ class Pfdo_med2img(ChrisApp):
                             type    = str,
                             optional= True,
                             default = "1")
-                            
+
         # med2image additional CLI flags
         self.add_argument("--inputFileSubStr",
                             help    = "input file substring",
@@ -349,9 +374,23 @@ class Pfdo_med2img(ChrisApp):
                             type    = str,
                             optional= True,
                             default = '')
+        self.add_argument("--convertOnlySingleDICOM",
+                            help    = "if specified, only convert the specific input DICOM",
+                            dest    = 'convertOnlySingleDICOM',
+                            action  = 'store_true',
+                            type    = bool,
+                            optional= True,
+                            default = False)
+        self.add_argument("--preserveDICOMinputName",
+                            help    = "if specified, save output files with the basename of their input DICOM",
+                            dest    = 'preserveDICOMinputName',
+                            action  = 'store_true',
+                            type    = bool,
+                            optional= True,
+                            default = False)
         self.add_argument("-s", "--sliceToConvert",
-                            help="slice to convert (for 3D data)",
-                            dest='sliceToConvert',
+                            help    = "slice to convert (for 3D data)",
+                            dest    = 'sliceToConvert',
                             type    = str,
                             optional= True,
                             default='-1')
@@ -381,6 +420,19 @@ class Pfdo_med2img(ChrisApp):
                             type    = str,
                             optional= True,
                             default = "")
+        self.add_argument('--rot',
+                            help    = "3D slice/dimenstion rotation vector",
+                            dest    = 'rot',
+                            type    = str,
+                            optional= True,
+                            default = "110")
+        self.add_argument('--rotAngle',
+                            help    = "3D slice/dimenstion rotation angle",
+                            dest    = 'rotAngle',
+                            type    = str,
+                            optional= True,
+                            default = "90")
+
 
     def run(self, options):
         """
@@ -389,17 +441,21 @@ class Pfdo_med2img(ChrisApp):
         print(Gstr_title)
         print('Version: %s' % self.get_version())
 
+        for k,v in options.__dict__.items():
+            print("%25s:  [%s]" % (k, v))
+        print("")
+
         if options.man or options.synopsis:
             self.show_man_page()
 
-        options.inputDir = options.inputdir
-        options.outputDir = options.outputdir
-        options.verbose = options.verbosity
+        options.inputDir    = options.inputdir
+        options.outputDir   = options.outputdir
+        options.verbose     = options.verbosity
 
         pfdo_shell = pfdo_med2image(vars(options))
 
         d_pfdo_shell = pfdo_shell.run(timerStart = True)
-        print(pfdo_shell)
+        # print(pfdo_shell)
 
         if options.printElapsedTime:
             pfdo_shell.dp.qprint(

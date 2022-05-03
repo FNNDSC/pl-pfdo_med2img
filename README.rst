@@ -272,7 +272,7 @@ We provide a sample directory of .dcm images here. (https://github.com/FNNDSC/SA
 
 
 Run using ``docker run``
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------
 
 To run using ``docker``, be sure to assign an "input" directory to ``/incoming`` and an output directory to ``/outgoing``. *Make sure that the* ``$(pwd)/out`` *directory is world writable!*
 
@@ -308,9 +308,7 @@ Copy and modify the different commands below as needed:
         --verbosity 5                                   \
         /incoming /outgoing
 
-The above command uses the argument ``--filterExpression`` to filter the ``.nii`` (NIfTI) files from the ${DEVEL} directory.
-It replicates the structure of the ``inputdir`` into the ``outputdir`` (in this case: ``results`` directory) then converts all those NIfTI files (in this case SAG-anon.nii) to png files within
-the outputdir.
+The above command uses the argument ``--filterExpression`` to filter any ``.nii`` (NIfTI) files from any nested location within the ``${DEVEL}`` directory. Then, for each filtered file in each nested directory, a conversion is performed and the results written to a corresponding nested location in the ``ouputdir`` (in this case the ``results`` directory).
 
 The following is a similar example that converts all the ``DICOM`` files to png/jpg images in the desired outputdir.
 
@@ -318,7 +316,7 @@ The following is a similar example that converts all the ``DICOM`` files to png/
 
 .. code:: bash
 
-    docker run --rm             \
+    docker run --rm                                     \
         -v ${DEVEL}/:/incoming                          \
         -v ${DEVEL}/results/:/outgoing                  \
         fnndsc/pl-pfdo_med2img pfdo_med2img             \

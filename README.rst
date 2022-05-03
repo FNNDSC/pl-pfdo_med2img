@@ -16,7 +16,7 @@ pl-pfdo_med2img
 Abstract
 --------
 
-``pl-pfdo_med2img`` is a ChRIS plugin about a ``pfdo_med2image`` module. Consult the ``pfdo_med2image`` `repo <https://github.com/FNNDSC/pfdo_med2image>`_ for additional information -- this plugin wrapper exposes the same CLI contract with the exceptio that the input and output directories are positional mandatory arguments in the plugin, but named and optional in the module.
+``pl-pfdo_med2img`` is a ChRIS plugin about a ``pfdo_med2image`` module. Consult the ``pfdo_med2image`` `repo <https://github.com/FNNDSC/pfdo_med2image>`_ for additional information -- this plugin wrapper exposes the same CLI contract with the exception that the input and output directories are positional mandatory arguments in the plugin, but named and optional in the module.
 
 
 Synopsis

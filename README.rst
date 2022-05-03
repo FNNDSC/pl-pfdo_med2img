@@ -340,15 +340,15 @@ To debug with source code mapping into the container, do:
 
 .. code:: bash
 
-docker run --rm -it --userns=host --name med2img        \
-    -v $PWD/pfdo_med2img/pfdo_med2img.py:/usr/local/lib/python3.9/site-packages/pfdo_med2img/pfdo_med2img.py:ro \
-    -v $PWD/in:/incoming:ro -v $PWD/out:/outgoing:rw    \
-    -w /outgoing                                        \
-    fnndsc/pl-pfdo_med2img pfdo_med2img                 \
-    --analyzeFileIndex f                                \
-    --fileFilter dcm -t jpg                             \
-    --threads 0 --reslice --verbosity 1                 \
-    --preserveDICOMinputName --printElapsedTime         \
-    /incoming /outgoing
+    docker run --rm -it --userns=host --name med2img        \
+        -v $PWD/pfdo_med2img/pfdo_med2img.py:/usr/local/lib/python3.9/site-packages/pfdo_med2img/pfdo_med2img.py:ro \
+        -v $PWD/in:/incoming:ro -v $PWD/out:/outgoing:rw    \
+        -w /outgoing                                        \
+        fnndsc/pl-pfdo_med2img pfdo_med2img                 \
+        --analyzeFileIndex f                                \
+        --fileFilter dcm -t jpg                             \
+        --threads 0 --reslice --verbosity 1                 \
+        --preserveDICOMinputName --printElapsedTime         \
+        /incoming /outgoing
 
 _-30-_

@@ -320,8 +320,35 @@ The following is a similar example that converts all the ``DICOM`` files to png/
         -v ${DEVEL}/:/incoming                          \
         -v ${DEVEL}/results/:/outgoing                  \
         fnndsc/pl-pfdo_med2img pfdo_med2img             \
-        --fileFilter dcm                                \
-        --threads 0                                     \
-        --printElapsedTime                              \
-        --verbosity 5                                   \
+        --analyzeFileIndex f                            \
+        --fileFilter dcm -t jpg                         \
+        --threads 0 --reslice --verbosity 1             \
+        --preserveDICOMinputName --printElapsedTime     \
         /incoming /outgoing
+
+Debug
+=====
+
+To poke around the container innards,
+
+.. code:: bash
+
+    docker run --rm -it --userns=host --name med2img    \
+        --entrypoint /bin/bash fnndsc/pl-pfdo_med2img
+
+To debug with source code mapping into the container, do:
+
+.. code:: bash
+
+docker run --rm -it --userns=host --name med2img        \
+    -v $PWD/pfdo_med2img/pfdo_med2img.py:/usr/local/lib/python3.9/site-packages/pfdo_med2img/pfdo_med2img.py:ro \
+    -v $PWD/in:/incoming:ro -v $PWD/out:/outgoing:rw    \
+    -w /outgoing                                        \
+    fnndsc/pl-pfdo_med2img pfdo_med2img                 \
+    --analyzeFileIndex f                                \
+    --fileFilter dcm -t jpg                             \
+    --threads 0 --reslice --verbosity 1                 \
+    --preserveDICOMinputName --printElapsedTime         \
+    /incoming /outgoing
+
+_-30-_

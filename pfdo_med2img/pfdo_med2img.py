@@ -19,6 +19,7 @@ logging.disable(logging.CRITICAL)
 from chrisapp.base import ChrisApp
 from pfdo_med2image import pfdo_med2image
 
+import pudb
 
 Gstr_title = """
         __    _                           _  _____ _
@@ -46,6 +47,7 @@ Gstr_synopsis = """
             [--fileFilter <someFilter1,someFilter2,...>]    \\
             [--dirFilter <someFilter1,someFilter2,...>]     \\
             [--outputLeafDir <outputLeafDirFormat>]         \\
+            [--analyzeFileIndex <someIndex>]                \\
             [-t|--outputFileType <outputFileType>]          \\
             [-s|--sliceToConvert <sliceToConvert>]          \\
             [--convertOnlySingleDICOM]                      \\

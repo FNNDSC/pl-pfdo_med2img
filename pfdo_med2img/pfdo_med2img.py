@@ -434,13 +434,6 @@ class Pfdo_med2img(ChrisApp):
                             type    = str,
                             optional= True,
                             default = "90")
-        self.add_argument("--syslog",
-                          help="show outputs in syslog style",
-                          dest='syslog',
-                          action='store_true',
-                          optional=True,
-                          type=bool,
-                          default=False)
 
 
     def run(self, options):
@@ -449,7 +442,6 @@ class Pfdo_med2img(ChrisApp):
         """
         print(Gstr_title)
         print('Version: %s' % self.get_version())
-        options.str_desc = ""
 
         for k,v in options.__dict__.items():
             print("%25s:  [%s]" % (k, v))
